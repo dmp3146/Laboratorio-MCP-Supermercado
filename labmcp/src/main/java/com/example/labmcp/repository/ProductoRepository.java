@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.lang.NonNull;
 
 import java.util.Collection;
 import java.util.List;
@@ -28,7 +29,8 @@ public interface ProductoRepository extends JpaRepository<Producto, Long> {
                                  Pageable pageable);
 
     @EntityGraph(attributePaths = "categoria")
-    Optional<Producto> findById(Long id);
+    @NonNull
+    Optional<Producto> findById(@NonNull Long id);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select p from Producto p where p.id = :id")

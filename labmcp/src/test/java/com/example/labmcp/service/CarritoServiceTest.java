@@ -24,10 +24,12 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.RETURNS_DEFAULTS;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -39,7 +41,6 @@ class CarritoServiceTest {
     private ProductoRepository productoRepository;
     @Mock
     private PedidoRepository pedidoRepository;
-    @Mock
     private DetallePedidoRepository detallePedidoRepository;
     @Mock
     private Cliente cliente;
@@ -54,6 +55,16 @@ class CarritoServiceTest {
 
     @BeforeEach
     void setUp() {
+        detallePedidoRepository = mock(DetallePedidoRepository.class, invocation -> {
+            if (invocation.getMethod().getName().equals("save")) {
+                DetallePedido detalle = invocation.getArgument(0);
+                if (!detalles.contains(detalle)) {
+                    detalles.add(detalle);
+                }
+                return detalle;
+            }
+            return RETURNS_DEFAULTS.answer(invocation);
+        });
         carritoService = new CarritoService(
                 new DemoClientProperties(1L),
                 clienteRepository,
@@ -80,15 +91,6 @@ class CarritoServiceTest {
         lenient().when(producto.getNombre()).thenReturn("Arroz");
         lenient().when(detallePedidoRepository.findAllByPedido_IdOrderByIdAsc(10L))
                 .thenAnswer(invocation -> detalles);
-        lenient().when(detallePedidoRepository.save(any(DetallePedido.class))).thenAnswer(invocation -> {
-            DetallePedido detalle = invocation.getArgument(0);
-            if (!detalles.contains(detalle)) {
-                detalles.add(detalle);
-            }
-            return detalle;
-        });
-        lenient().when(pedidoRepository.save(any(Pedido.class)))
-                .thenAnswer(invocation -> invocation.getArgument(0));
     }
 
     @Test
@@ -102,7 +104,8 @@ class CarritoServiceTest {
         assertEquals(2, resultado.productos().get(0).cantidad());
         assertEquals(new BigDecimal("2.50"), resultado.productos().get(0).precioUnitario());
         assertEquals(new BigDecimal("5.00"), resultado.total());
-        verify(productoRepository, never()).save(any(Producto.class));
+        verify(productoRepository).findLockedById(7L);
+        verifyNoMoreInteractions(productoRepository);
     }
 
     @Test
@@ -131,7 +134,8 @@ class CarritoServiceTest {
                 BusinessException.class, () -> carritoService.agregarProducto(7L, 9));
 
         assertEquals("STOCK_INSUFICIENTE", exception.getCode());
-        verify(detallePedidoRepository, never()).save(any(DetallePedido.class));
+        verify(detallePedidoRepository).findByPedido_IdAndProducto_Id(10L, 7L);
+        verifyNoMoreInteractions(detallePedidoRepository);
     }
 
     @Test

@@ -3,7 +3,6 @@ package com.example.labmcp.service;
 import com.example.labmcp.dto.SupermercadoDtos.CategoriaDto;
 import com.example.labmcp.dto.SupermercadoDtos.DisponibilidadDto;
 import com.example.labmcp.dto.SupermercadoDtos.ProductoDto;
-import com.example.labmcp.model.Categoria;
 import com.example.labmcp.model.Producto;
 import com.example.labmcp.repository.CategoriaRepository;
 import com.example.labmcp.repository.ProductoRepository;
@@ -12,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Objects;
 
 @Service
 public class CatalogoService {
@@ -55,7 +55,7 @@ public class CatalogoService {
     @Transactional(readOnly = true)
     public ProductoDto consultarProducto(Long productoId) {
         validarProductoId(productoId);
-        Producto producto = productoRepository.findById(productoId)
+        Producto producto = productoRepository.findById(Objects.requireNonNull(productoId))
                 .orElseThrow(() -> new BusinessException("PRODUCTO_NO_ENCONTRADO",
                         "No se encontró el producto solicitado."));
         if (!Boolean.TRUE.equals(producto.getActivo())) {
@@ -68,7 +68,7 @@ public class CatalogoService {
     public DisponibilidadDto consultarDisponibilidad(Long productoId, Integer cantidad) {
         validarProductoId(productoId);
         validarCantidad(cantidad);
-        Producto producto = productoRepository.findById(productoId)
+        Producto producto = productoRepository.findById(Objects.requireNonNull(productoId))
                 .orElseThrow(() -> new BusinessException("PRODUCTO_NO_ENCONTRADO",
                         "No se encontró el producto solicitado."));
         boolean activo = Boolean.TRUE.equals(producto.getActivo());

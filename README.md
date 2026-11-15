@@ -188,6 +188,34 @@ Los servicios se ejecutan localmente en las siguientes direcciones:
 
 Las credenciales se configuran mediante las variables de entorno `PWD_UDEA` y `GOOGLE_API_KEY`. La dirección del servidor MCP puede ajustarse mediante `MCP_SERVER_URL`.
 
+En Git Bash, desde la raíz del proyecto, iniciamos el servidor con estos comandos. Al solicitar la ruta, se debe ingresar el directorio del JDK 21 en formato de Git Bash:
+
+```bash
+read -r -p "Ruta del JDK 21: " JAVA_HOME
+export JAVA_HOME
+export PATH="$JAVA_HOME/bin:$PATH"
+read -r -s -p "Contraseña de MySQL: " PWD_UDEA
+printf '\n'
+export PWD_UDEA
+cd labmcp
+./mvnw spring-boot:run
+```
+
+Cuando el servidor esté listo, abrimos otra terminal de Git Bash en la raíz e iniciamos el agente:
+
+```bash
+read -r -p "Ruta del JDK 21: " JAVA_HOME
+export JAVA_HOME
+export PATH="$JAVA_HOME/bin:$PATH"
+read -r -s -p "Clave de Gemini: " GOOGLE_API_KEY
+printf '\n'
+export GOOGLE_API_KEY
+cd agentemcp
+./mvnw clean compile exec:java@runAdkWebServer
+```
+
+Después abrimos la interfaz web y seleccionamos `SupermercadoAgent`. Si se reinicia el servidor MCP, también se debe reiniciar el agente para que vuelva a descubrir las herramientas. El esquema y los datos de demostración deben existir previamente; el repositorio no incluye un script SQL para crearlos.
+
 ## 12. Autores
 
 **Universidad de Antioquia**  

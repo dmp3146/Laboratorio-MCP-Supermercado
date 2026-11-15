@@ -3,7 +3,6 @@ package com.example.labmcp.service;
 import com.example.labmcp.config.DemoClientProperties;
 import com.example.labmcp.dto.SupermercadoDtos.PedidoDetalleDto;
 import com.example.labmcp.dto.SupermercadoDtos.PedidoResumenDto;
-import com.example.labmcp.model.Cliente;
 import com.example.labmcp.model.DetallePedido;
 import com.example.labmcp.model.Direccion;
 import com.example.labmcp.model.Pedido;
@@ -16,10 +15,11 @@ import com.example.labmcp.repository.ProductoRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -55,7 +55,7 @@ public class PedidoService {
         }
 
         Long clienteId = demoClientProperties.clientId();
-        Cliente cliente = clienteRepository.findLockedById(clienteId)
+        clienteRepository.findLockedById(clienteId)
                 .orElseThrow(() -> new BusinessException("CLIENTE_DEMO_NO_ENCONTRADO",
                         "No se encontró el cliente de demostración configurado."));
         List<Pedido> carritos = pedidoRepository.findCartsLockedByClienteId(clienteId);
@@ -85,7 +85,8 @@ public class PedidoService {
         List<Producto> productosBloqueados =
                 productoRepository.findAllLockedByIdInOrderById(productoIds);
         Map<Long, Producto> productosPorId = productosBloqueados.stream()
-                .collect(Collectors.toMap(Producto::getId, Function.identity()));
+                .collect(Collectors.toMap(
+                        producto -> Objects.requireNonNull(producto).getId(), Function.identity()));
 
         for (DetallePedido detalle : detalles) {
             Producto producto = productosPorId.get(detalle.getProducto().getId());
@@ -111,7 +112,7 @@ public class PedidoService {
         carrito.setDireccion(direccion);
         carrito.setTotal(CarritoService.calcularTotal(detalles));
         carrito.setEstado(Pedido.ESTADO_CONFIRMADO);
-        carrito.setFecha(LocalDateTime.now());
+        carrito.setFecha(LocalDateTime.now(ZoneId.systemDefault()));
         productoRepository.saveAll(productosBloqueados);
         pedidoRepository.save(carrito);
         return SupermercadoMapper.detalle(carrito, detalles);

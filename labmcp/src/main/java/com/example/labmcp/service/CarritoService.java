@@ -16,7 +16,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 public class CarritoService {
@@ -117,7 +119,7 @@ public class CarritoService {
                 .findByPedido_IdAndProducto_Id(carrito.getId(), productoId)
                 .orElseThrow(() -> new BusinessException("PRODUCTO_NO_EN_CARRITO",
                         "El producto no está en el carrito activo."));
-        detallePedidoRepository.delete(detalle);
+        detallePedidoRepository.delete(Objects.requireNonNull(detalle));
         return guardarTotalYRepresentar(carrito);
     }
 
@@ -155,7 +157,7 @@ public class CarritoService {
             return carritos.get(0);
         }
         return pedidoRepository.save(new Pedido(
-                cliente, LocalDateTime.now(), BigDecimal.ZERO.setScale(2), Pedido.ESTADO_CARRITO));
+                cliente, LocalDateTime.now(ZoneId.systemDefault()), BigDecimal.ZERO.setScale(2), Pedido.ESTADO_CARRITO));
     }
 
     private Pedido obtenerCarritoBloqueado(Long clienteId) {
@@ -187,8 +189,9 @@ public class CarritoService {
 
     static BigDecimal calcularTotal(List<DetallePedido> detalles) {
         BigDecimal total = detalles.stream()
-                .map(DetallePedido::getSubtotal)
-                .reduce(BigDecimal.ZERO, BigDecimal::add)
+                .map(detalle -> Objects.requireNonNull(detalle).getSubtotal())
+                .reduce(BigDecimal.ZERO, (acumulado, subtotal) ->
+                        Objects.requireNonNull(acumulado).add(Objects.requireNonNull(subtotal)))
                 .setScale(2, RoundingMode.HALF_UP);
         validarImporte(total);
         return total;

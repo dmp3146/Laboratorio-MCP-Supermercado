@@ -20,6 +20,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -84,8 +85,8 @@ class PedidoServiceTest {
         assertEquals(Pedido.ESTADO_CONFIRMADO, pedido.estado());
         assertEquals(new BigDecimal("5.00"), pedido.total());
         verify(producto).setStock(1);
-        verify(productoRepository).saveAll(List.of(producto));
-        verify(pedidoRepository).save(carrito);
+        verify(productoRepository).saveAll(Objects.requireNonNull(List.of(producto)));
+        verify(pedidoRepository).save(Objects.requireNonNull(carrito));
     }
 
     @Test
@@ -97,7 +98,7 @@ class PedidoServiceTest {
 
         assertEquals("STOCK_INSUFICIENTE", exception.getCode());
         verify(producto, never()).setStock(0);
-        verify(productoRepository, never()).saveAll(List.of(producto));
-        verify(pedidoRepository, never()).save(carrito);
+        verify(productoRepository, never()).saveAll(Objects.requireNonNull(List.of(producto)));
+        verify(pedidoRepository, never()).save(Objects.requireNonNull(carrito));
     }
 }
