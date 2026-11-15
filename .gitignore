@@ -1,0 +1,37 @@
+# Variables de entorno y secretos
+.env
+.env.*
+!.env.example
+!.env.template
+
+# Java y Maven
+target/
+*.class
+*.jar
+*.war
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# Logs
+*.log
+logs/
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Archivos temporales
+*.tmp
+*.bak
+*.swp
+
+# Credenciales y certificados
+*.pem
+*.key
+*.jks
+*.p12
+*.pfx
